@@ -1,31 +1,129 @@
-# TASLE
-TASLE (Top-down Algorithm Splitting at Largest Error) is software for bounding time series data with a near minimax, continuous, piecewise linear band.
+	(LB,UB,height,tmin) = tasle(t,y,user_tmin,[minheightfrac=0.8,variableheight=false])
 
-Copyright 2009 Allan Willms and Emily Szusz.
+Compute a piecewise linear bound on the data (`t`,`y`).
 
-This Octave/MATLAB software source code is distributed under the GNU General Public License, Version 3.
+Tasle stands for Top-down Algorithm Splitting at the Largest Error.  It produces a near
+minimax continuous piecewise linear band enclosing the data.  No segment of this band
+whose slope does not lie between its neighbour's slopes will have midline length less than
+`user_tmin`.  The returned value `tmin` is the minimum such length in the actual solution
+and the returned value `height` is the maximal height of the band.  The band's lower bound
+is defined by connecting the points in the mx2 matrix `LB` (first column is the t values,
+second column is the y values) and the upper bound by the nx2 matrix `UB`.   The band may
+have constant height, or each linear segment may have its own height (if
+`varableheight=true`).  In the case that a constant height band is requested, the t values
+in both `LB` and 'UB' will be identical.  The variable `minheightfrac` controls how much
+splitting of segments is done after the largest height segment that cannot be split
+without causing a violation of the constraints is found.  Segments whose height is below
+`minheightfrac*height` will be split.  In the case that `variableheight=false`, all
+segments are expanded vertically to have the same height as the constraining segment, but
+the result is a smoother looking band.
 
-Bug reports and comments should be sent to Allan Willms. 
+# Examples #
+```julia-repl
+julia> t = range(0.0,10.0,50); y = @. sin(t) + 0.2*cos(7*t);
+julia> (LB,UB,height,tmin) = tasle(t,y,0.4);
+julia> height
+0.3776184236760187
+julia> p=plot(t,y,seriescolor=:blue,markersize=2,seriestype=:scatter)
+julia> plot!(p,LB[:,1],LB[:,2],seriescolor=:red)
+julia> plot!(p,UB[:,1],UB[:,2],seriescolor=:red)
+```
 
-<h3>Description</h3>
+---
 
-TASLE constructs a continuous piecewise linear band (two piecewise linear curves differing by a constant vertical offset) which bounds a given data set {(t<sub>i</sub>, y<sub>i</sub>)}. The quality of the fit is governed by a parameter which determines the minimum length between opposite sign slope discontinuities. The algorithm scales linearly with the number of data points.
+The algorithm is described in
+Emily K. Szusz, Allan R. Willms, 2010 "A linear time algorithm for near minimax
+continuous piecewise linear representations of discrete data", SIAM J. Sci.
+Comput. 32 (5), pp. 2584-2602, doi=10.1137/090769077.
 
-TASLE is an improvement on an earlier related algorithm called linenvelope.
+This implementation has made a few adjustments to the algorithm compared to the 
+description in that paper.  In particular, segments whose slopes are between their
+neighbours' slopes are allowed to be swallowed.  Also, if a violation of the 
+constraints is encountered, the algorithm focuses on splitting nearby segments to
+see if the violation can be reversed.  If not the minimun height is considered to
+be the height of the band whose splitting caused the violation.  The algorithm may
+then continue to split less tall bands, up to `minheightfrac` of the minimum height.
 
-The TASLE algorithm is described in
-<ul>
-    <li>E.K. Szusz, A.R. Willms, <cite>A linear time algorithm for near minimax continuous piecewise linear representations of discrete data</cite>, SIAM J. Sci. Comput. 32 (5) (2010) 2584-2602. 
-</ul>
-All of the data sets used in the above paper may be downloaded via one of the two formats below.
-<ul>
-    <li>datasets.tar.gz (45 KB)
-    <li>datasets.zip (45 KB) 
-</ul>
-These data sets and their original sources are:
-<ol>
-    <li>Echocardiogram (ECG) data with measurements taken roughly every 0.008 seconds over a period of five seconds. Units: seconds and millivolts. Source: PhysioNet, the first five seconds from the record "learning-set/n01" of their "AF Termination Challenge Database."
-    <li>The average monthly exchange rate between the American and Canadian dollar from 1979 through 2009. Units: days and US dollars. Source: The Pacific Exchange Rate Service, Sauder School of Business, University of British Columbia. Retrieval settings: base currency: Canadian dollars, target currency: U.S. dollars, start date: Jan. 1, 1979, end date: Dec. 31, 2009, volume notation.
-    <li>The relative brightness of the variable star X Cygni recorded roughly once or twice per day over a five month period. Units: days and relative brightness. Source: The American Association of Variable Star Observers' (AAVSO). Retrieval settings: star name: "X Cyg" (AUID: 000-BCM-291), start date: 29 April 2009, stop date: 24 September 2009.
-    <li>Voltage recordings from a pyloric dilator neuron of a spiny lobster, where the voltage in millivolts is measured regularly every 0.2 milliseconds for 2 seconds. Source: Jack Peck, Ithaca College. 
-      </ol>
+# Copyright 2022 (Julia version) Allan R. Willms #
+
+tasle is free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Dr. Allan R. Willms,
+Dept. of Mathematics and Statistics,
+University of Guelph,
+Guelph, ON N1G 2W1,
+Canada
+	(LB,UB,height,tmin) = tasle(t,y,user_tmin,[minheightfrac=0.8,variableheight=false])
+
+Compute a piecewise linear bound on the data (`t`,`y`).
+
+Tasle stands for Top-down Algorithm Splitting at the Largest Error.  It produces a near
+minimax continuous piecewise linear band enclosing the data.  No segment of this band
+whose slope does not lie between its neighbour's slopes will have midline length less than
+`user_tmin`.  The returned value `tmin` is the minimum such length in the actual solution
+and the returned value `height` is the maximal height of the band.  The band's lower bound
+is defined by connecting the points in the mx2 matrix `LB` (first column is the t values,
+second column is the y values) and the upper bound by the nx2 matrix `UB`.   The band may
+have constant height, or each linear segment may have its own height (if
+`varableheight=true`).  In the case that a constant height band is requested, the t values
+in both `LB` and 'UB' will be identical.  The variable `minheightfrac` controls how much
+splitting of segments is done after the largest height segment that cannot be split
+without causing a violation of the constraints is found.  Segments whose height is below
+`minheightfrac*height` will be split.  In the case that `variableheight=false`, all
+segments are expanded vertically to have the same height as the constraining segment, but
+the result is a smoother looking band.
+
+# Examples #
+```julia-repl
+julia> t = range(0.0,10.0,50); y = @. sin(t) + 0.2*cos(7*t);
+julia> (LB,UB,height,tmin) = tasle(t,y,0.4);
+julia> height
+0.3776184236760187
+julia> p=plot(t,y,seriescolor=:blue,markersize=2,seriestype=:scatter)
+julia> plot!(p,LB[:,1],LB[:,2],seriescolor=:red)
+julia> plot!(p,UB[:,1],UB[:,2],seriescolor=:red)
+```
+
+---
+
+The algorithm is described in
+Emily K. Szusz, Allan R. Willms, 2010 "A linear time algorithm for near minimax
+continuous piecewise linear representations of discrete data", SIAM J. Sci.
+Comput. 32 (5), pp. 2584-2602, doi=10.1137/090769077.
+
+This implementation has made a few adjustments to the algorithm compared to the 
+description in that paper.  In particular, segments whose slopes are between their
+neighbours' slopes are allowed to be swallowed.  Also, if a violation of the 
+constraints is encountered, the algorithm focuses on splitting nearby segments to
+see if the violation can be reversed.  If not the minimun height is considered to
+be the height of the band whose splitting caused the violation.  The algorithm may
+then continue to split less tall bands, up to `minheightfrac` of the minimum height.
+
+# Copyright 2022 (Julia version) Allan R. Willms #
+
+tasle is free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Dr. Allan R. Willms,
+Dept. of Mathematics and Statistics,
+University of Guelph,
+Guelph, ON N1G 2W1,
+Canada
+
