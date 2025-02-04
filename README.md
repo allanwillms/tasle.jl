@@ -1,4 +1,7 @@
-	(LB,UB,height,tmin) = tasle(t,y,user_tmin,[minheightfrac=0.8,variableheight=false])
+This software is obsolete.  It has been replaced by LinearBand.jl
+
+
+(LB,UB,height,tmin) = tasle(t,y,user_tmin,[minheightfrac=0.8,variableheight=false])
 
 Compute a piecewise linear bound on the data (`t`,`y`).
 
